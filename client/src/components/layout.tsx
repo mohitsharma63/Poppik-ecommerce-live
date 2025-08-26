@@ -363,17 +363,17 @@ export default function Layout({ children }: LayoutProps) {
                         </Link>
                       ))}
                     </div>
-                    
+
                     {/* Categories Section */}
                     <div className="px-4 pb-4">
                       <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
                         Categories
                       </div>
-                      
+
                       <Accordion type="single" collapsible className="w-full space-y-2">
                         {categories.map((category) => {
                           const categorySubcategories = getSubcategoriesForCategory(category.id);
-                          
+
                           if (categorySubcategories.length > 0) {
                             return (
                               <AccordionItem 
@@ -462,7 +462,7 @@ export default function Layout({ children }: LayoutProps) {
                               </div>
                             </div>
                           </Link>
-                          
+
                           <Link href="/wishlist">
                             <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100">
                               <div className="p-2 bg-pink-100 rounded-full">
@@ -481,7 +481,7 @@ export default function Layout({ children }: LayoutProps) {
                               )}
                             </div>
                           </Link>
-                          
+
                           <Link href="/cart">
                             <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100">
                               <div className="p-2 bg-green-100 rounded-full">
@@ -500,7 +500,7 @@ export default function Layout({ children }: LayoutProps) {
                               )}
                             </div>
                           </Link>
-                          
+
                           <div className="pt-3 mt-3 border-t border-gray-200">
                             <button
                               onClick={handleLogout}
@@ -529,7 +529,7 @@ export default function Layout({ children }: LayoutProps) {
                               </div>
                             </div>
                           </Link>
-                          
+
                           <Link href="/wishlist">
                             <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100">
                               <div className="p-2 bg-pink-100 rounded-full">
@@ -548,7 +548,7 @@ export default function Layout({ children }: LayoutProps) {
                               )}
                             </div>
                           </Link>
-                          
+
                           <Link href="/cart">
                             <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100">
                               <div className="p-2 bg-green-100 rounded-full">
@@ -883,7 +883,7 @@ export default function Layout({ children }: LayoutProps) {
                   title="Follow us on X (Twitter)"
                 >
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.244H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                   </svg>
                 </a>
                 <a 

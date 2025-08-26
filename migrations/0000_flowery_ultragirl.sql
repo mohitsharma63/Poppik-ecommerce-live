@@ -337,3 +337,4 @@ CREATE TABLE IF NOT EXISTS blog_posts
 -- Add dateOfBirth and address columns to users table
 ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth VARCHAR(10);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE "users" ADD COLUMN "pincode" varchar(6);

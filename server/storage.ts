@@ -35,8 +35,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://31.97.226.116:5432/my_pgdb",
-  ssl: process.env.DATABASE_URL?.includes('31.97.226.116') ? false : { rejectUnauthorized: false },
+  // connectionString: process.env.DATABASE_URL || "postgresql://:5432/poppik",
+  connectionString: process.env.DATABASE_URL || "postgresql://localhost:5432/poppik",
+  // ssl: process.env.DATABASE_URL?.includes('31.97.226.116') ? false : { rejectUnauthorized: false },
   max: 20,
   min: 2, // Keep minimum 2 connections alive
   idleTimeoutMillis: 300000, // 5 minutes instead of 30 seconds
@@ -95,7 +96,7 @@ export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createUser(userData: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
 
@@ -196,8 +197,22 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(userData: InsertUser): Promise<User> {
     const db = await getDb();
-    const result = await db.insert(users).values(userData).returning();
-    return result[0];
+    const [user] = await db.insert(users).values({
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      phone: userData.phone || null,
+      password: userData.password,
+      dateOfBirth: userData.dateOfBirth || null,
+      address: userData.address || null,
+      city: userData.city || null,
+      state: userData.state || null,
+      pincode: userData.pincode || null,
+      role: userData.role || 'customer',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+    return user;
   }
 
   async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {

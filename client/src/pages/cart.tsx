@@ -289,11 +289,24 @@ export default function Cart() {
                 </div>
 
                 {/* Checkout Button */}
-                <Link href="/checkout">
-                  <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
-                    Proceed to Checkout
-                  </Button>
-                </Link>
+                <Button 
+                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => {
+                    const user = localStorage.getItem("user");
+                    if (!user) {
+                      toast({
+                        title: "Login Required",
+                        description: "Please log in to proceed with checkout",
+                        variant: "destructive",
+                      });
+                      window.location.href = "/auth/login";
+                      return;
+                    }
+                    window.location.href = "/checkout";
+                  }}
+                >
+                  Proceed to Checkout
+                </Button>
 
                 {/* Security Note */}
                 <p className="text-xs text-gray-500 text-center">

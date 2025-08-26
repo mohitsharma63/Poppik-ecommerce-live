@@ -19,6 +19,9 @@ interface UserProfile {
   createdAt: string;
   address?: string;
   dateOfBirth?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
 }
 
 export default function Profile() {
@@ -30,7 +33,10 @@ export default function Profile() {
     lastName: '',
     phone: '',
     dateOfBirth: '',
-    address: ''
+    address: '',
+    city: '',
+    state: '',
+    pincode: ''
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -48,7 +54,10 @@ export default function Profile() {
           lastName: parsedUser.lastName || '',
           phone: parsedUser.phone || '',
           dateOfBirth: parsedUser.dateOfBirth || '',
-          address: parsedUser.address || ''
+          address: parsedUser.address || '',
+          city: parsedUser.city || '',
+          state: parsedUser.state || '',
+          pincode: parsedUser.pincode || ''
         });
       } catch (error) {
         console.error("Error parsing user data:", error);
@@ -89,7 +98,10 @@ export default function Profile() {
         lastName: user.lastName,
         phone: user.phone || '',
         dateOfBirth: user.dateOfBirth || '',
-        address: user.address || ''
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        pincode: user.pincode || ''
       });
       setIsEditModalOpen(true);
     }
@@ -116,7 +128,10 @@ export default function Profile() {
         lastName: editFormData.lastName,
         phone: editFormData.phone,
         dateOfBirth: editFormData.dateOfBirth,
-        address: editFormData.address
+        address: editFormData.address,
+        city: editFormData.city,
+        state: editFormData.state,
+        pincode: editFormData.pincode
       };
 
       console.log('Sending PUT request to:', `/api/users/${user.id}`);
@@ -306,6 +321,36 @@ export default function Profile() {
                     </div>
                   )}
 
+                  {user.city && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">City</label>
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <User className="h-4 w-4 text-gray-400 mr-3" />
+                        <span className="text-gray-900">{user.city}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {user.state && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">State</label>
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <User className="h-4 w-4 text-gray-400 mr-3" />
+                        <span className="text-gray-900">{user.state}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {user.pincode && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">PIN Code</label>
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <User className="h-4 w-4 text-gray-400 mr-3" />
+                        <span className="text-gray-900">{user.pincode}</span>
+                      </div>
+                    </div>
+                  )}
+
                   {user.address && (
                     <div className="space-y-2 md:col-span-2">
                       <label className="text-sm font-medium text-gray-700">Address</label>
@@ -410,6 +455,38 @@ export default function Profile() {
                 value={editFormData.dateOfBirth}
                 onChange={(e) => setEditFormData({ ...editFormData, dateOfBirth: e.target.value })}
                 placeholder="Select your date of birth"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  value={editFormData.city}
+                  onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })}
+                  placeholder="Enter your city"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  value={editFormData.state}
+                  onChange={(e) => setEditFormData({ ...editFormData, state: e.target.value })}
+                  placeholder="Enter your state"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pincode">PIN Code</Label>
+              <Input
+                id="pincode"
+                value={editFormData.pincode}
+                onChange={(e) => setEditFormData({ ...editFormData, pincode: e.target.value })}
+                placeholder="Enter your PIN code"
+                maxLength={6}
               />
             </div>
 

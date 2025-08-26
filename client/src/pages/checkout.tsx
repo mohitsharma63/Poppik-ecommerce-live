@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { ArrowLeft, CreditCard, MapPin, User, Package, CheckCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, MapPin, User, Package, CheckCircle, Edit } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,8 +41,85 @@ export default function CheckoutPage() {
     phone: "",
     paymentMethod: "cashfree",
   });
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  const [isFormDisabled, setIsFormDisabled] = useState(false);
+
+  // Auto-fill form when user is logged in and has profile data
+  useEffect(() => {
+    const user = userProfile || JSON.parse(localStorage.getItem('user') || '{}');
+    if (user && user.id && !formData.email) {
+      handleUseProfileData();
+      setIsFormDisabled(true); // Disable form after auto-fill
+    }
+  }, [userProfile]);
+
+  const handleUseProfileData = () => {
+    const user = userProfile || JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user || !user.id) return;
+
+    // Use database fields directly if available
+    let city = user.city || "";
+    let state = user.state || "";
+    let zipCode = user.pincode || "";
+    let streetAddress = user.address || "";
+
+    // If database fields are empty, try to parse from full address
+    if (!city || !state || !zipCode) {
+      const addressParts = streetAddress.split(',').map(part => part.trim());
+
+      if (addressParts.length >= 3 && (!zipCode || !state)) {
+        // Last part might contain state and pin code
+        const lastPart = addressParts[addressParts.length - 1];
+        const pinCodeMatch = lastPart.match(/\d{6}$/);
+        if (pinCodeMatch && !zipCode) {
+          zipCode = pinCodeMatch[0];
+        }
+        if (!state) {
+          state = lastPart.replace(/\d{6}$/, '').trim();
+        }
+      }
+
+      if (addressParts.length >= 2 && !city) {
+        // Second last part might be city
+        city = addressParts[addressParts.length - 2];
+      }
+
+      // If we extracted city/state from address, clean up the street address
+      if ((city || state) && addressParts.length > 2) {
+        const partsToRemove = [];
+        if (state) partsToRemove.push(1);
+        if (city) partsToRemove.push(1);
+        streetAddress = addressParts.slice(0, addressParts.length - Math.max(...partsToRemove, 0)).join(', ');
+      }
+    }
+
+    // Fill form with database fields and parsed data
+    setFormData({
+      email: user.email || "",
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      address: streetAddress,
+      city: city,
+      state: state,
+      zipCode: zipCode,
+      phone: user.phone || "",
+      paymentMethod: "cashfree",
+    });
+
+    toast({
+      title: "Profile Information Loaded",
+      description: "Your information has been automatically filled from your profile.",
+    });
+  };
+
+  const handleEditForm = () => {
+    setIsFormDisabled(false);
+    toast({
+      title: "Edit Mode Enabled",
+      description: "You can now modify the shipping address.",
+    });
+  };
+
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -61,14 +138,9 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Store user profile and show confirmation dialog
+      // Store user profile and auto-fill form
       setUserProfile(user);
-      
-      // Check if user has profile data to fill
-      const hasProfileData = user.firstName || user.lastName || user.email || user.phone || user.address;
-      if (hasProfileData) {
-        setShowProfileDialog(true);
-      }
+      // autoFillProfileData(user); // This is now handled by useEffect and handleUseProfileData
 
       const savedCart = localStorage.getItem("cart");
       if (savedCart) {
@@ -145,6 +217,8 @@ export default function CheckoutPage() {
     return userStr ? JSON.parse(userStr) : null;
   };
 
+  // Removed the original autoFillProfileData as it's replaced by handleUseProfileData logic within useEffect.
+
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => {
       const price = parseInt(item.price.replace(/[₹,]/g, ""));
@@ -163,70 +237,6 @@ export default function CheckoutPage() {
       [name]: value
     }));
   };
-
-  const handleUseProfileData = () => {
-    if (userProfile) {
-      // Parse address to extract city, state, zipCode from profile
-      let city = "";
-      let state = "";
-      let zipCode = "";
-      let streetAddress = userProfile.address || "";
-
-      // Try to extract city, state, zipCode from full address if they exist
-      const addressParts = streetAddress.split(',').map(part => part.trim());
-      if (addressParts.length >= 3) {
-        // Last part might contain state and pin code
-        const lastPart = addressParts[addressParts.length - 1];
-        const pinCodeMatch = lastPart.match(/\d{6}$/);
-        if (pinCodeMatch) {
-          zipCode = pinCodeMatch[0];
-          state = lastPart.replace(/\d{6}$/, '').trim();
-        } else {
-          state = lastPart;
-        }
-        
-        // Second last part might be city
-        if (addressParts.length >= 2) {
-          city = addressParts[addressParts.length - 2];
-        }
-        
-        // Remove city and state from full address to get street address
-        streetAddress = addressParts.slice(0, -2).join(', ');
-      } else if (addressParts.length === 2) {
-        // If only 2 parts, assume first is address and second is city
-        city = addressParts[1];
-        streetAddress = addressParts[0];
-      } else if (addressParts.length === 1) {
-        // If only 1 part, use it as street address
-        streetAddress = addressParts[0];
-      }
-
-      // Fill both contact information and shipping address
-      setFormData({
-        email: userProfile.email || "",
-        firstName: userProfile.firstName || "",
-        lastName: userProfile.lastName || "",
-        address: streetAddress,
-        city: city,
-        state: state,
-        zipCode: zipCode,
-        phone: userProfile.phone || "",
-        paymentMethod: "cashfree",
-      });
-
-      toast({
-        title: "Profile Information Loaded",
-        description: "Your contact information and shipping address have been filled automatically.",
-      });
-    }
-    setShowProfileDialog(false);
-  };
-
-  const handleSkipProfileData = () => {
-    setShowProfileDialog(false);
-  };
-
-
 
   const processCashfreePayment = async () => {
     try {
@@ -514,7 +524,7 @@ export default function CheckoutPage() {
       console.error('Order placement error:', error);
       toast({
         title: "Order Failed",
-        description: "There was an error placing your order. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error placing your order. Please try again.",
         variant: "destructive",
       });
     }
@@ -622,56 +632,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      {/* Profile Data Confirmation Dialog */}
-      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Use Profile Information?
-            </DialogTitle>
-            <DialogDescription>
-              Would you like to use the information from your profile to fill both contact information and shipping address in this checkout form?
-            </DialogDescription>
-          </DialogHeader>
-          
-          {userProfile && (
-            <div className="space-y-3 py-4">
-              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                <div>
-                  <h4 className="font-semibold text-sm text-gray-700 mb-2">Contact Information:</h4>
-                  <p><strong>Name:</strong> {userProfile.firstName} {userProfile.lastName}</p>
-                  <p><strong>Email:</strong> {userProfile.email}</p>
-                  {userProfile.phone && <p><strong>Phone:</strong> {userProfile.phone}</p>}
-                </div>
-                {userProfile.address && (
-                  <div>
-                    <h4 className="font-semibold text-sm text-gray-700 mb-2">Shipping Address:</h4>
-                    <p>{userProfile.address}</p>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex gap-3 pt-4">
-                <Button 
-                  onClick={handleUseProfileData}
-                  className="flex-1 bg-red-600 hover:bg-red-700"
-                >
-                  Yes, Use Profile Data
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={handleSkipProfileData}
-                  className="flex-1"
-                >
-                  No, I'll Enter Manually
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -702,6 +662,8 @@ export default function CheckoutPage() {
                       type="email"
                       value={formData.email}
                       onChange={handleInputChange}
+                      disabled={isFormDisabled}
+                      className={isFormDisabled ? "bg-gray-50 cursor-not-allowed" : ""}
                       required
                     />
                   </div>
@@ -713,6 +675,8 @@ export default function CheckoutPage() {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
+                        disabled={isFormDisabled}
+                        className={isFormDisabled ? "bg-gray-50 cursor-not-allowed" : ""}
                         required
                       />
                     </div>
@@ -723,6 +687,8 @@ export default function CheckoutPage() {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
+                        disabled={isFormDisabled}
+                        className={isFormDisabled ? "bg-gray-50 cursor-not-allowed" : ""}
                         required
                       />
                     </div>
@@ -735,6 +701,8 @@ export default function CheckoutPage() {
                       type="tel"
                       value={formData.phone}
                       onChange={handleInputChange}
+                      disabled={isFormDisabled}
+                      className={isFormDisabled ? "bg-gray-50 cursor-not-allowed" : ""}
                     />
                   </div>
                 </CardContent>
@@ -745,6 +713,11 @@ export default function CheckoutPage() {
                   <CardTitle className="flex items-center">
                     <MapPin className="h-5 w-5 mr-2" />
                     Shipping Address
+                    {isFormDisabled && (
+                      <Button variant="ghost" size="sm" onClick={handleEditForm} className="ml-auto p-0 h-auto">
+                        <Edit className="h-4 w-4 text-gray-500 hover:text-red-600" />
+                      </Button>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -755,6 +728,8 @@ export default function CheckoutPage() {
                       name="address"
                       value={formData.address}
                       onChange={handleInputChange}
+                      disabled={isFormDisabled}
+                      className={isFormDisabled ? "bg-gray-50 cursor-not-allowed" : ""}
                       required
                     />
                   </div>
@@ -766,6 +741,8 @@ export default function CheckoutPage() {
                         name="city"
                         value={formData.city}
                         onChange={handleInputChange}
+                        disabled={isFormDisabled}
+                        className={isFormDisabled ? "bg-gray-50 cursor-not-allowed" : ""}
                         required
                       />
                     </div>
@@ -776,6 +753,8 @@ export default function CheckoutPage() {
                         name="state"
                         value={formData.state}
                         onChange={handleInputChange}
+                        disabled={isFormDisabled}
+                        className={isFormDisabled ? "bg-gray-50 cursor-not-allowed" : ""}
                         required
                       />
                     </div>
@@ -787,6 +766,8 @@ export default function CheckoutPage() {
                       name="zipCode"
                       value={formData.zipCode}
                       onChange={handleInputChange}
+                      disabled={isFormDisabled}
+                      className={isFormDisabled ? "bg-gray-50 cursor-not-allowed" : ""}
                       required
                     />
                   </div>

@@ -109,8 +109,8 @@ export default function Signup() {
           title: "Success",
           description: "Account created successfully!",
         });
-        
-        window.location.href = "/profile"; // Redirect to profile
+
+        window.location.href = "/"; // Redirect to home
       } else {
         toast({
           title: "Error",
@@ -230,7 +230,7 @@ export default function Signup() {
             {step === 1 ? (
               // Step 1: Registration Form
               <>
-                <form onSubmit={handleFormSubmit} className="space-y-4">
+                <form onSubmit={(e) => { e.preventDefault(); createAccount(); }} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">First Name</Label>
@@ -518,9 +518,8 @@ export default function Signup() {
                     type="submit" 
                     className="w-full bg-red-600 hover:bg-red-700"
                     disabled={isLoading}
-                    onClick={createAccount}
                   >
-                    {isLoading ? "Sending OTP..." : "Send Verification Code"}
+                    {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
                 </form>
 
